@@ -2,13 +2,13 @@ package uz.devmi.osmtest
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.util.MapTileIndex
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
@@ -24,19 +24,11 @@ class MainActivity : AppCompatActivity() {
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx))
         map = findViewById<View>(R.id.map) as MapView
         map.tileProvider.clearTileCache()
-//        Configuration.getInstance().cacheMapTileCount = 12.toShort()
-//        Configuration.getInstance().cacheMapTileOvershoot = 12.toShort()
-        // Create a custom tile source
-        // Create a custom tile source
-        map.setTileSource(object : OnlineTileSourceBase("", 1, 30, 512, ".png", arrayOf("https://a.tile.openstreetmap.org/")) {
-            override fun getTileURLString(pMapTileIndex: Long): String {
-                return (baseUrl
-                        + MapTileIndex.getZoom(pMapTileIndex)
-                        + "/" + MapTileIndex.getX(pMapTileIndex)
-                        + "/" + MapTileIndex.getY(pMapTileIndex)
-                        + mImageFilenameEnding)
-            }
-        })
+        Configuration.getInstance().cacheMapTileCount = 12.toShort()
+        Configuration.getInstance().cacheMapTileOvershoot = 12.toShort()
+
+
+        map.setTileSource(TileSourceFactory.MAPNIK)
 
         map.setMultiTouchControls(true)
         val mapController: IMapController = map.controller
@@ -49,22 +41,54 @@ class MainActivity : AppCompatActivity() {
 
     private fun createmarker() {
 
-        val originMarker = Marker(map)
-        originMarker.position = GeoPoint(41.29,69.24)
+        val originMarker = CustomMarker(
+            mapView = map,
+            identifier = "1111",
+            title = "AAA",
+            pointColor = Points.GREY,
+            descriptionList = listOf("1 000 USD" to "#02E767", "500 000 UZS" to "#E66767")
+        ) {
+
+        }
+        originMarker.position = GeoPoint(41.30, 69.20)
         originMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         originMarker.setPanToView(true)
-        originMarker.title = "Test"
+        originMarker.generateImage()
+
         map.overlays.add(originMarker)
 
-//        if (map == null) {
-//            return
-//        }
-//        val my_marker = Marker(map)
-//        my_marker.position = GeoPoint(4.1, 51.1)
-//        my_marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-//        my_marker.title = "Give it a title"
-//        my_marker.setPanToView(true)
-//        map.overlays.add(my_marker)
+        val originMarker1 = CustomMarker(
+            mapView = map,
+            title = "BBB",
+            identifier = "1111",
+            pointColor = Points.GREEN,
+            descriptionList = listOf("200 000 UZS" to "#02E767", "50 USD" to "#02E767")
+        ) {
+
+        }
+        originMarker1.position = GeoPoint(41.25, 69.10)
+        originMarker1.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+        originMarker1.setPanToView(true)
+        originMarker1.generateImage()
+        map.overlays.add(originMarker1)
+
+        val originMarker2 = CustomMarker(
+            mapView = map,
+            identifier = "2222",
+            title = "CCC",
+            pointColor = Points.RED,
+            descriptionList = listOf("200 000 UZS" to "#E66767", "500 000 USD" to "#E66767")
+        ) {
+            map.controller.animateTo(GeoPoint(41.20, 69.00))
+            Toast.makeText(this, "$it", Toast.LENGTH_SHORT).show()
+
+        }
+        originMarker2.position = GeoPoint(41.20, 69.00)
+        originMarker2.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+        originMarker2.setPanToView(true)
+        originMarker2.generateImage()
+        map.overlays.add(originMarker2)
+
         map.invalidate()
     }
 }
